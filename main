@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Классы D&D 5 — D&D.Zero</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0e14;
+            color: #e8edf3;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* --- БОКОВАЯ ПАНЕЛЬ --- */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background: #11171f;
+            border-right: 1px solid #252d38;
+            padding: 1.5rem 1.2rem;
+            overflow-y: auto;
+            z-index: 1000;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateX(-100%);
+            box-shadow: 4px 0 20px rgba(0,0,0,0.6);
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: #1a212a;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #3c4757;
+            border-radius: 10px;
+        }
+
+        .sidebar-logo {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid #252d38;
+        }
+        .sidebar-logo span {
+            color: #d43f3f;
+        }
+
+        .sidebar-section {
+            margin-bottom: 1.8rem;
+        }
+
+        .sidebar-section-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: #6a7a8a;
+            margin-bottom: 0.7rem;
+        }
+
+        .sidebar-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-list li {
+            padding: 0.35rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #c8d0dc;
+            transition: background 0.15s, color 0.15s;
+            cursor: default;
+        }
+
+        .sidebar-list li:hover {
+            background: #1e2733;
+            color: #ffffff;
+        }
+
+        .sidebar-list li.active {
+            color: #ffffff;
+            background: #1f2a38;
+            border-left: 3px solid #d43f3f;
+            padding-left: 0.5rem;
+        }
+
+        .sidebar-list li.sub-item {
+            padding-left: 1.5rem;
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: #8a94a5;
+        }
+
+        .sidebar-list li.sub-item:hover {
+            color: #e8edf3;
+        }
+
+        /* --- КНОПКА-ГАМБУРГЕР --- */
+        .menu-toggle {
+            position: fixed;
+            top: 1.2rem;
+            right: 1.5rem;
+            z-index: 1100;
+            background: #1a212a;
+            border: 1px solid #2f3a47;
+            border-radius: 10px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        .menu-toggle:hover {
+            background: #26313f;
+            border-color: #4a5a6a;
+        }
+
+        .menu-toggle span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: #e8edf3;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+
+        .menu-toggle.open span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+        .menu-toggle.open span:nth-child(2) {
+            opacity: 0;
+        }
+        .menu-toggle.open span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+
+        /* --- ОСНОВНОЙ КОНТЕНТ --- */
+        .main-content {
+            flex: 1;
+            padding: 2rem 2rem 2rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            transition: margin-left 0.3s;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.25rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .page-title {
+            font-size: 2.6rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .page-title small {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #8a94a5;
+            margin-left: 0.75rem;
+        }
+
+        .page-sub {
+            color: #8a94a5;
+            margin-bottom: 2rem;
+            border-left: 3px solid #d43f3f;
+            padding-left: 1rem;
+            font-size: 1rem;
+        }
+
+        .page-sub strong {
+            color: #e8edf3;
+            font-weight: 600;
+        }
+
+        /* Сетка карточек */
+        .class-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .class-card {
+            background: #141a22;
+            border-radius: 16px;
+            padding: 1.5rem 1.2rem;
+            border: 1px solid #252d38;
+            transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+            cursor: default;
+        }
+
+        .class-card:hover {
+            transform: translateY(-4px);
+            background: #1c232e;
+            border-color: #3c4757;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+        }
+
+        .class-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .class-name-en {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: #7a8496;
+        }
+
+        .class-source {
+            font-size: 0.7rem;
+            color: #8a94a5;
+            background: #1e2733;
+            padding: 0.2rem 0.7rem;
+            border-radius: 30px;
+            display: inline-block;
+            margin-top: 0.5rem;
+            border: 1px solid #2a3440;
+        }
+
+        .badge-partner {
+            background: #2f1f1f;
+            color: #d97a7a;
+            font-size: 0.55rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+            border: 1px solid #5f3434;
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
+
+        .class-card.special {
+            background: #1a1620;
+            border-color: #3d2e3d;
+        }
+        .class-card.special:hover {
+            background: #221d2b;
+            border-color: #6a4a6a;
+        }
+
+        .footer-link {
+            text-align: right;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #252d38;
+        }
+        .footer-link a {
+            color: #6a7a8a;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        .footer-link a:hover {
+            color: #b0c0d0;
+            text-decoration: underline;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        .overlay.active {
+            display: block;
+        }
+
+        @media (max-width: 650px) {
+            .page-title {
+                font-size: 2rem;
+            }
+            .class-grid {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                width: 260px;
+            }
+            .main-content {
+                padding: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Боковая панель -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">D&D<span>.Zero</span></div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Справочники</div>
+            <ul class="sidebar-list">
+                <li class="active">Классы</li>
+                <li>Виды</li>
+                <li>Предыстории</li>
+                <li>Черты</li>
+                <li>Заклинания</li>
+                <li>Глоссарий</li>
+                <li>Бестиарий</li>
+                <li>Магические предметы</li>
+                <li>Снаряжение</li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Новичку</div>
+            <ul class="sidebar-list">
+                <li>Как начать играть в D&D</li>
+                <li>Основные формулы</li>
+                <li>Создание персонажа</li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Статьи</div>
+            <ul class="sidebar-list">
+                <li>Инвентарь</li>
+                <li>Игровые механики</li>
+                <li>О монстрах</li>
+            </ul>
+        </div>
+    </aside>
+
+    <div class="overlay" id="overlay"></div>
+
+    <button class="menu-toggle" id="menuToggle" aria-label="Открыть меню">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Основной контент -->
+    <main class="main-content" id="mainContent">
+        <div class="page-header">
+            <div>
+                <span class="page-title">Классы <small>D&D 5</small></span>
+            </div>
+        </div>
+
+        <!-- НОВОЕ ОПИСАНИЕ -->
+        <div class="page-sub">
+            Классы моих кампаний от <strong>Mechromancer-Zero</strong>
+        </div>
+
+        <div class="class-grid">
+            <div class="class-card">
+                <div class="class-name">
+                    Артефактор
+                    <span class="class-name-en">Artificer</span>
+                </div>
+                <span class="class-source">📘 Eberron: Forge of the Artificer</span>
+            </div>
+            <div class="class-card">
+                <div class="class-name">
+                    Бард
+                    <span class="class-name-en">Bard</span>
+                </div>
+                <span class="class-source">📘 Player's Handbook 2024</span>
+            </div>
+            <div class="class-card">
+                <div class="class-name">
+                    Варвар
+                    <span class="class-name-en">Barbarian</span>
+                </div>
+                <span class="class-source">📘 Player's Handbook 2024</span>
+            </div>
+            <div class="class-card">
+                <div class="class-name">
+                    Воин
+                    <span class="class-name-en">Fighter</span>
+                </div>
+                <span class="class-source">📘 Player's Handbook 2024</span>
+            </div>
+            <div class="class-card">
+                <div class="class-name">
+                    Волшебник
+                    <span class="class-name-en">Wizard</span>
+                </div>
+                <span class="class-source">📘 Player's Handbook 2024</span>
+            </div>
+            <div class="class-card">
+                <div class="class-name">
+                    Друид
+                    <span class="class-name-en">Druid</span>
+                </div>
+                <span class="class-source">📘 Player's Handbook 2024</span>
+            </div>
+            <div class="class-card">
+                <div class="class-name">
+                    Жрец
+                    <span class="class-name-en">Cleric</span>
+                </div>
+                <span class="class-source">📘 Player's Handbook 2024</span>
+            </div>
+            <div class="class-card">
+                <div class="class-name">
+                    Колдун
+                    <span class="class-name-en">Warlock</span>
+                </div>
+                <span class="class-source">📘 Player's Handbook 2024</span>
+            </div>
+            <div class="class-card">
+                <div class="class-name">
+                    Монах
+                    <span class="class-name-en">Monk</span>
+                </div>
+                <span class="class-source">📘 Player's Handbook 2024</span>
+            </div>
+            <div class="class-card">
+                <div class="class-name">
+                    Паладин
+                    <span class="class-name-en">Paladin</span>
+                </div>
+                <span class="class-source">📘 Player's Handbook 2024</span>
+            </div>
+            <div class="class-card">
+                <div class="class-name">
+                    Плут
+                    <span class="class-name-en">Rogue</span>
+                </div>
+                <span class="class-source">📘 Player's Handbook 2024</span>
+            </div>
+            <div class="class-card">
+                <div class="class-name">
+                    Следопыт
+                    <span class="class-name-en">Ranger</span>
+                </div>
+                <span class="class-source">📘 Player's Handbook 2024</span>
+            </div>
+            <div class="class-card">
+                <div class="class-name">
+                    Чародей
+                    <span class="class-name-en">Sorcerer</span>
+                </div>
+                <span class="class-source">📘 Player's Handbook 2024</span>
+            </div>
+            <div class="class-card special">
+                <div class="class-name">
+                    Кулачник
+                    <span class="class-name-en">Pugilist</span>
+                </div>
+                <span class="class-source">📘 The Pugilist Class</span>
+                <span class="badge-partner">⭐ DnD Beyond Partnered</span>
+            </div>
+        </div>
+
+        <div class="footer-link">
+            <a href="#">Сообщить об ошибке</a>
+        </div>
+    </main>
+
+    <script>
+        (function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            const toggleBtn = document.getElementById('menuToggle');
+
+            function openMenu() {
+                sidebar.classList.add('open');
+                overlay.classList.add('active');
+                toggleBtn.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeMenu() {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                toggleBtn.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+
+            toggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (sidebar.classList.contains('open')) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+            });
+
+            overlay.addEventListener('click', closeMenu);
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+                    closeMenu();
+                }
+            });
+
+            const menuItems = sidebar.querySelectorAll('.sidebar-list li');
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    menuItems.forEach(li => li.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+        })();
+    </script>
+
+</body>
+</html>
